@@ -1,0 +1,73 @@
+{
+  "name": "mcp-spec-migrator",
+  "version": "0.1.0",
+  "description": "Codemod and compatibility-matrix tool for migrating MCP server repos across spec versions (2024-11-05, 2025-03-26, 2025-06-18, 2025-11-25). Read-only detector + migration plan generator. CLI + MCP server.",
+  "type": "module",
+  "main": "dist/server.js",
+  "bin": {
+    "mcp-spec-migrator": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./specs": {
+      "import": "./dist/specs/index.js",
+      "types": "./dist/specs/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "prepack": "tsc -b",
+    "test": "vitest run",
+    "lint": "tsc --noEmit",
+    "start": "node dist/server.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "spec-migration",
+    "codemod",
+    "compatibility-matrix",
+    "developer-tools",
+    "stdio"
+  ],
+  "author": "Matthias Meyer (StudioMeyer)",
+  "license": "MIT",
+  "homepage": "https://github.com/studiomeyer-io/mcp-spec-migrator-2511",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/studiomeyer-io/mcp-spec-migrator-2511.git"
+  },
+  "bugs": {
+    "url": "https://github.com/studiomeyer-io/mcp-spec-migrator-2511/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.0",
+    "ts-morph": "^28.0.0",
+    "commander": "^14.0.0",
+    "semver": "^7.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/semver": "^7.5.8",
+    "typescript": "^6.0.0",
+    "vitest": "^4.0.0",
+    "tsx": "^4.19.0"
+  },
+  "mcp": {
+    "specVersion": "2025-06-18",
+    "transport": "stdio"
+  }
+}

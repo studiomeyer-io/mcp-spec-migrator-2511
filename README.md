@@ -1,6 +1,13 @@
 # mcp-spec-migrator
 
-Codemod and compatibility-matrix tool for migrating MCP server repos across spec versions.
+
+<!-- badges -->
+[![npm version](https://img.shields.io/npm/v/mcp-spec-migrator?style=flat-square&color=cb3837&logo=npm&label=npm)](https://www.npmjs.com/package/mcp-spec-migrator)
+[![npm downloads](https://img.shields.io/npm/dm/mcp-spec-migrator?style=flat-square&color=cb3837&logo=npm&label=installs%2Fmo)](https://www.npmjs.com/package/mcp-spec-migrator)
+![License](https://img.shields.io/github/license/studiomeyer-io/mcp-spec-migrator-2511?style=flat-square&color=22c55e&label=license)
+![Last commit](https://img.shields.io/github/last-commit/studiomeyer-io/mcp-spec-migrator-2511?style=flat-square&color=88c0d0&label=updated)
+![GitHub stars](https://img.shields.io/github/stars/studiomeyer-io/mcp-spec-migrator-2511?style=flat-square&color=ffd700&logo=github&label=stars)
+<!-- /badges -->Codemod and compatibility-matrix tool for migrating MCP server repos across spec versions.
 
 Detects which MCP spec a repo targets, computes the diff to a target version, generates a `MIGRATION.md` plan, and verifies completion. Read-only — never writes patches into your repo.
 

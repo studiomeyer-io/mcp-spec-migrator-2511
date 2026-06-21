@@ -103,12 +103,12 @@ export function describeBreakingFailure(id: string, text: string): string | null
       return null;
 
     case "tasks-primitive":
-      // 2025-11-25 added experimental task primitive (deferred-execution + polling).
-      // No removal involved — this is additive. We cannot mechanically verify whether
-      // a server has *opted in*, but we can at least flag if the older request/response
-      // pattern is still hard-coded without acknowledging Tasks. Conservative: require
+      // 2025-11-25 added the experimental task primitive (deferred execution + polling).
+      // Tasks are created via REQUEST AUGMENTATION (a `task` field on e.g. tools/call),
+      // not a `tasks/create` method — see src/specs/2025-11-25.ts. No removal involved;
+      // this is additive, so we cannot mechanically verify opt-in. Conservative: require
       // manual verification rather than passing silently.
-      return "Manual verification required: 2025-11-25 introduces an experimental `tasks` primitive. Confirm server either opts in (sets capabilities.tasks) or explicitly rejects task requests with -32601.";
+      return "Manual verification required: 2025-11-25 introduces an experimental `tasks` primitive (created via request augmentation, not a `tasks/create` method). Confirm the server either opts in (declares capabilities.tasks and handles the `task` field) or ignores task-augmented requests and runs them synchronously.";
 
     case "sampling-with-tools":
       // SEP-1577: sampling/createMessage may now include tool definitions.

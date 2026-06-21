@@ -154,12 +154,85 @@ const server = new Server({
 });
 server.setRequestHandler("tools/list", async () => ({ tools: [] }));
 server.setRequestHandler("elicitation/create", async () => ({ content: [] }));
-server.setRequestHandler("tasks/create", async () => ({ id: "x" }));
-server.setRequestHandler("tasks/get", async () => ({ id: "x" }));
+// Tasks in 2025-11-25 are created via request augmentation (a \`task\` field on
+// tools/call returning a CreateTaskResult), then polled — there is no tasks/create.
+server.setRequestHandler("tasks/get", async () => ({ task: { id: "x", status: "pending" } }));
+server.setRequestHandler("tasks/result", async () => ({ content: [] }));
 const annotations = {
   readOnlyHint: true,
   destructiveHint: false,
 };
+`,
+  },
+];
+
+/**
+ * A 2025-06-18 server with NO task surface at all. Used to assert the
+ * tasks-primitive plan trigger does NOT fire on a server that never touches
+ * tasks (false-positive guard).
+ */
+export const FIXTURE_2025_06_18_NO_TASKS: FixtureFile[] = [
+  {
+    path: "package.json",
+    content: JSON.stringify(
+      {
+        name: "fake-2025-06-18-no-tasks",
+        version: "0.0.1",
+        type: "module",
+        dependencies: {
+          "@modelcontextprotocol/sdk": "^1.15.0",
+        },
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    path: "src/server.ts",
+    content: `import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+const server = new Server({ name: "fake", version: "0.0.1" });
+server.setRequestHandler("tools/list", async () => ({ tools: [] }));
+server.setRequestHandler("tools/call", async () => ({ content: [] }));
+server.setRequestHandler("elicitation/create", async () => ({ content: [] }));
+const annotations = { readOnlyHint: true, destructiveHint: false };
+`,
+  },
+];
+
+/**
+ * A 2025-11-25 server that opts into task-augmented tools/call (the real
+ * creation path). Used to assert the tasks-primitive plan trigger DOES fire on
+ * the correct surface. Note: no explicit specVersion meta, so detection falls
+ * back to SDK + fingerprints.
+ */
+export const FIXTURE_2025_11_25_TASK_AUGMENTED: FixtureFile[] = [
+  {
+    path: "package.json",
+    content: JSON.stringify(
+      {
+        name: "fake-2025-11-25-tasks",
+        version: "0.0.1",
+        type: "module",
+        dependencies: {
+          "@modelcontextprotocol/sdk": "^1.30.0",
+        },
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    path: "src/server.ts",
+    content: `import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+const server = new Server({ name: "fake", version: "0.0.1" });
+server.setRequestHandler("tools/call", async (req) => {
+  // Task-augmented request: caller passed a \`task\` field, so we return a CreateTaskResult.
+  const task = req.params.task;
+  if (task) return { task: { id: "t1", status: "pending" } };
+  return { content: [] };
+});
+server.setRequestHandler("tasks/get", async () => ({ task: { id: "t1", status: "completed" } }));
+server.setRequestHandler("tasks/result", async () => ({ content: [] }));
 `,
   },
 ];

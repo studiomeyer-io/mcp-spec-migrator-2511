@@ -47,6 +47,9 @@ describe("MCP server", () => {
     for (const name of EXPECTED_TOOL_NAMES) {
       const def = tools[name];
       expect(def, `tool ${name} should be registered`).toBeDefined();
+      // Type-narrow under noUncheckedIndexedAccess; the assertion above already
+      // guarantees presence, this keeps the rest of the block type-safe.
+      if (!def) throw new Error(`tool ${name} not registered`);
       const annotations = def.annotations ?? {};
       expect(annotations.readOnlyHint, `${name} readOnlyHint`).toBe(true);
       expect(annotations.destructiveHint, `${name} destructiveHint`).toBe(false);

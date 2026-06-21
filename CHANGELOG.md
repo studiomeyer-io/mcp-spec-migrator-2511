@@ -5,6 +5,59 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-06-21
+
+### Fixed
+- **Rule correctness — `2025-11-25` Tasks primitive (HIGH):** the spec data
+  declared a `tasks/create` request-handler fingerprint and migration hint.
+  There is **no `tasks/create` method** in MCP `2025-11-25` — tasks are created
+  via *request augmentation* (a `task` field on an existing request such as
+  `tools/call`, returning a `CreateTaskResult`), then polled. The real task
+  methods are `tasks/get`, `tasks/list`, `tasks/cancel`, `tasks/result`. A
+  `tasks/create` fingerprint can never legitimately fire, and the hint told
+  users to add a handler that does not exist. Corrected the fingerprints, the
+  `tasks-primitive` change description / migration hint
+  (`src/specs/2025-11-25.ts`), the plan triggers (`src/plan/generate.ts`) and
+  the completeness-check message (`src/plan/check.ts`). Verified field-by-field
+  against `modelcontextprotocol.io/specification/2025-11-25` via context7.
+
+### Added
+- **Two missing `2025-11-25` changes** the matrix/plan did not surface, both
+  confirmed in the official changelog:
+  - `json-schema-2020-12-default` — JSON Schema 2020-12 is now the default
+    dialect for all MCP schema definitions.
+  - `elicitation-default-values` — elicitation schemas may specify `default`
+    values for primitive types (string / number / enum).
+- **Test typechecking.** `tests/**` were previously excluded from `tsc`, so a
+  type error in a test never failed CI. New `tsconfig.test.json` + `npm run
+  typecheck:tests`, folded into `npm run lint`. This immediately surfaced (and
+  fixed) a latent `noUncheckedIndexedAccess` issue in `tests/server.test.ts`.
+- **Coverage** raised from 86.3% → 90.5% statements / 73.3% → 80.8% branches
+  (23 new tests, 35 → 58 total):
+  - `tests/specs.test.ts` — new file locking spec-data facts (no `tasks/create`,
+    correct task methods, new additions, unique change ids, `introducedIn`
+    integrity, core-handler presence, single `specVersion` meta owner).
+  - Matrix: downgrade-direction path (the previously untested F4 path),
+    `matrixAsMarkdown` section/empty rendering, adjacent-step ⊆ full-span chain
+    consistency, and the two new `2025-11-25` additions.
+  - Plan: tasks-primitive trigger fires on a task-augmented `2025-11-25` fixture
+    and does **not** fire on a `2025-06-18` server with no task surface
+    (false-positive guard).
+  - Check: per-id branch coverage for `sampling-with-tools`,
+    `form-url-elicitation`, `drop-http-sse-transport` (dual-transport pass) and
+    `include-context` soft-deprecation (positive + negative cases).
+- New test fixtures: `FIXTURE_2025_06_18_NO_TASKS` and
+  `FIXTURE_2025_11_25_TASK_AUGMENTED`; `FIXTURE_2025_11_25` updated to the real
+  request-augmentation task model (no `tasks/create`).
+
+### Notes
+- No public API changes. Detection/diff/plan **output** changes for repos that
+  reference the corrected `2025-11-25` task surface, hence the patch bump.
+- F4 (downgrade direction in `computeMatrix`) is now covered by tests; the
+  aggregate change set is direction-agnostic by design and `from`/`to` are kept
+  faithful to the caller's arguments. Flipping additions↔removals for true
+  down-migrations remains deferred to a future minor (still rare in practice).
+
 ## [0.1.0] - 2026-05-02
 
 ### Added

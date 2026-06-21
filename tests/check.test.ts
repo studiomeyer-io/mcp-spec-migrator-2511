@@ -71,11 +71,39 @@ describe("describeBreakingFailure — defensive default", () => {
     expect(reason).toBeNull();
   });
 
-  it("flags tasks-primitive with manual-verification message", () => {
+  it("flags tasks-primitive with manual-verification message and no tasks/create claim", () => {
     const reason = describeBreakingFailure("tasks-primitive", "");
     expect(reason).not.toBeNull();
     expect(reason).toMatch(/tasks/i);
     expect(reason).toMatch(/manual verification/i);
+    // Must frame tasks/create as non-existent rather than prescribing it.
+    expect(reason).toMatch(/not a .?tasks\/create.? method/i);
+    expect(reason).toMatch(/request augmentation/i);
+  });
+
+  it("sampling-with-tools: branches on whether the server owns a sampling loop", () => {
+    const withLoop = describeBreakingFailure(
+      "sampling-with-tools",
+      'await client.request("sampling/createMessage", {});',
+    );
+    expect(withLoop).not.toBeNull();
+    expect(withLoop).toMatch(/sampling\/createMessage/);
+
+    const without = describeBreakingFailure("sampling-with-tools", "// no sampling here");
+    expect(without).not.toBeNull();
+    expect(without).toMatch(/SEP-1577/);
+  });
+
+  it("form-url-elicitation: flags servers that use elicitation, passes those that do not", () => {
+    const usesElicit = describeBreakingFailure(
+      "form-url-elicitation",
+      'server.setRequestHandler("elicitation/create", fn);',
+    );
+    expect(usesElicit).not.toBeNull();
+    expect(usesElicit).toMatch(/-32042/);
+
+    const noElicit = describeBreakingFailure("form-url-elicitation", "// nothing");
+    expect(noElicit).toBeNull();
   });
 });
 
@@ -93,5 +121,30 @@ describe("describeDeprecationWarning — defensive default", () => {
     );
     expect(reason).not.toBeNull();
     expect(reason).toMatch(/SSEServerTransport/);
+  });
+
+  it("passes drop-http-sse-transport when both transports are present", () => {
+    const reason = describeDeprecationWarning(
+      "drop-http-sse-transport",
+      "new SSEServerTransport(); new StreamableHTTPServerTransport();",
+    );
+    expect(reason).toBeNull();
+  });
+
+  it("flags include-context soft-deprecation when thisServer/allServers is used", () => {
+    const reason = describeDeprecationWarning(
+      "include-context-soft-deprecation",
+      'createMessage({ includeContext: "allServers" })',
+    );
+    expect(reason).not.toBeNull();
+    expect(reason).toMatch(/soft-deprecated/);
+  });
+
+  it("passes include-context soft-deprecation when the deprecated values are absent", () => {
+    const reason = describeDeprecationWarning(
+      "include-context-soft-deprecation",
+      'createMessage({ includeContext: "none" })',
+    );
+    expect(reason).toBeNull();
   });
 });

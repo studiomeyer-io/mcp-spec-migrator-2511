@@ -81,4 +81,81 @@ describe("compatibility_matrix", () => {
       }
     }
   });
+
+  it("2025-06-18 -> 2025-11-25 surfaces the new 2025-11-25 additions", () => {
+    const matrix = computeMatrix("2025-06-18", "2025-11-25");
+    const additionIds = matrix.new_features.map((c) => c.id);
+    expect(additionIds).toContain("json-schema-2020-12-default");
+    expect(additionIds).toContain("elicitation-default-values");
+    expect(additionIds).toContain("sampling-with-tools");
+    expect(additionIds).toContain("form-url-elicitation");
+  });
+
+  it("a downgrade query (to < from) preserves from/to and reports the same change set as the matching upgrade", () => {
+    // F4 regression guard: the matrix aggregates the changes spanning the two
+    // versions regardless of direction, but must keep `from`/`to` faithful to
+    // the caller's arguments so the rendered header is correct.
+    const down = computeMatrix("2025-11-25", "2024-11-05");
+    expect(down.from).toBe("2025-11-25");
+    expect(down.to).toBe("2024-11-05");
+
+    const up = computeMatrix("2024-11-05", "2025-11-25");
+    const idsOf = (m: typeof down) =>
+      [
+        ...m.breaking,
+        ...m.soft_deprecations,
+        ...m.new_features,
+        ...m.experimental,
+      ]
+        .map((c) => c.id)
+        .sort();
+    // Same span of versions => same underlying change ids, just a different header.
+    expect(idsOf(down)).toEqual(idsOf(up));
+  });
+
+  it("matrixAsMarkdown renders every section heading and unchanged areas", () => {
+    const md = matrixAsMarkdown(computeMatrix("2024-11-05", "2025-11-25"));
+    expect(md).toContain("## Breaking");
+    expect(md).toContain("## Soft Deprecations");
+    expect(md).toContain("## New Features");
+    expect(md).toContain("## Experimental");
+    // 2024-11-05 -> 2025-11-25 touches most areas; `resources`/`prompts` stay unchanged.
+    expect(md).toContain("## Unchanged Areas");
+    expect(md).toMatch(/- resources/);
+  });
+
+  it("matrixAsMarkdown emits _None._ for empty sections (no-op diff)", () => {
+    const md = matrixAsMarkdown(computeMatrix("2025-11-25", "2025-11-25"));
+    expect(md).toContain("_None._");
+  });
+
+  it("adjacent-step matrices are subsets of the full-span matrix (chain consistency)", () => {
+    const full = computeMatrix("2024-11-05", "2025-11-25");
+    const fullIds = new Set(
+      [
+        ...full.breaking,
+        ...full.soft_deprecations,
+        ...full.new_features,
+        ...full.experimental,
+      ].map((c) => c.id),
+    );
+    const steps: Array<[SpecVersion, SpecVersion]> = [
+      ["2024-11-05", "2025-03-26"],
+      ["2025-03-26", "2025-06-18"],
+      ["2025-06-18", "2025-11-25"],
+    ];
+    for (const [a, b] of steps) {
+      const m = computeMatrix(a, b);
+      for (const c of [
+        ...m.breaking,
+        ...m.soft_deprecations,
+        ...m.new_features,
+        ...m.experimental,
+      ]) {
+        expect(fullIds.has(c.id), `${c.id} (${a}->${b}) missing from full span`).toBe(
+          true,
+        );
+      }
+    }
+  });
 });

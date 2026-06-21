@@ -142,11 +142,24 @@ function changeTriggers(id: string): string[] {
     case "drop-jsonrpc-batching":
       return ["JSONRPCBatchRequest", "batch"];
     case "tasks-primitive":
-      return ["tasks/create", "tasks/get", "tasks/list", "tasks/cancel"];
+      // No `tasks/create` — tasks are created via request augmentation. Match the
+      // real task methods plus the `CreateTaskResult` type and the `task:` field.
+      return [
+        "tasks/get",
+        "tasks/list",
+        "tasks/cancel",
+        "tasks/result",
+        "CreateTaskResult",
+        "TaskMetadata",
+      ];
     case "sampling-with-tools":
-      return ["sampling/createMessage"];
+      return ["sampling/createMessage", "CreateMessageRequest"];
     case "form-url-elicitation":
-      return ["-32042", "elicitation/create"];
+      return ["-32042", "URL_ELICITATION_REQUIRED", "elicitation/create"];
+    case "elicitation-default-values":
+      return ["elicitation/create", "ElicitRequest"];
+    case "json-schema-2020-12-default":
+      return ["2020-12", "$schema"];
     case "include-context-soft-deprecation":
       return ["includeContext", "thisServer", "allServers"];
     default:

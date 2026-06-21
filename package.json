@@ -1,6 +1,6 @@
 {
   "name": "mcp-spec-migrator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Codemod and compatibility-matrix tool for migrating MCP server repos across spec versions (2024-11-05, 2025-03-26, 2025-06-18, 2025-11-25). Read-only detector + migration plan generator. CLI + MCP server.",
   "type": "module",
   "main": "dist/server.js",

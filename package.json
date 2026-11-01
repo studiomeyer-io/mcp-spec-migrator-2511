@@ -1,6 +1,6 @@
 {
   "name": "mcp-spec-migrator",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Codemod and compatibility-matrix tool for migrating MCP server repos across spec versions (2024-11-05, 2025-03-26, 2025-06-18, 2025-11-25). Read-only detector + migration plan generator. CLI + MCP server.",
   "type": "module",
   "main": "dist/server.js",
@@ -25,11 +25,12 @@
   ],
   "scripts": {
     "build": "tsc -b",
-    "prepack": "tsc -b",
+    "prepack": "npm run build && node scripts/prepare-bundles.mjs",
     "test": "vitest run",
     "lint": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
     "typecheck:tests": "tsc --noEmit -p tsconfig.test.json",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "test:consumer": "node scripts/check-consumer.mjs"
   },
   "keywords": [
     "mcp",
@@ -70,5 +71,13 @@
   "mcp": {
     "specVersion": "2025-06-18",
     "transport": "stdio"
-  }
+  },
+  "overrides": {
+    "@ts-morph/common": {
+      "minimatch": "^11.0.3"
+    }
+  },
+  "bundledDependencies": [
+    "ts-morph"
+  ]
 }
